@@ -8,7 +8,7 @@ environment:
   
 dependencies:
   eventified: ^0.1.0
-  analyzer: '>=10.0.0 <11.0.0'
+  analyzer: '>=12.0.0 <13.0.0'
   build: ^4.0.0
   source_gen: ^4.0.0
   code_builder: ^4.4.0
