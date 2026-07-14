@@ -1,6 +1,3 @@
-// TODO: When we upgrade to analyzer 8 again, we can use deprecations to find our way
-// ignore_for_file: deprecated_member_use
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -13,14 +10,15 @@ import 'package:source_gen/source_gen.dart' as gen;
 class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
   static const packageName = 'eventified';
 
-  static const gen.TypeChecker eventifiedAnnotiationType =
-      gen.TypeChecker.fromRuntime(Eventified);
+  static const gen.TypeChecker eventifiedAnnotiationType = gen
+      .TypeChecker.typeNamed(Eventified);
 
-  static const gen.TypeChecker eventAnnotationType =
-      gen.TypeChecker.fromRuntime(Event);
+  static const gen.TypeChecker eventAnnotationType = gen.TypeChecker.typeNamed(
+    Event,
+  );
 
-  static const gen.TypeChecker eventArgumentAnnotationType =
-      gen.TypeChecker.fromRuntime(EventArgument);
+  static const gen.TypeChecker eventArgumentAnnotationType = gen
+      .TypeChecker.typeNamed(EventArgument);
 
   @override
   dynamic generateForAnnotatedElement(
@@ -69,19 +67,21 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
       return '${element.name}Event';
     }();
 
-    final result = ClassBuilder()
-      ..name = name
-      ..sealed = true;
+    final result =
+        ClassBuilder()
+          ..name = name
+          ..sealed = true;
 
     result.constructors.add(Constructor((b) => b..constant = true));
 
     if (withMetadata) {
       result.methods.add(
         Method(
-          (b) => b
-            ..name = '\$metadata'
-            ..type = MethodType.getter
-            ..returns = refer('EventMetadata'),
+          (b) =>
+              b
+                ..name = '\$metadata'
+                ..type = MethodType.getter
+                ..returns = refer('EventMetadata'),
         ),
       );
     }
@@ -99,89 +99,106 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
     final name = method.name;
     final suffix = baseEvent.name!;
 
-    return ReCase(name).pascalCase + suffix;
+    return ReCase(name!).pascalCase + suffix;
   }
 
   Class generateEvent(
-      ClassBuilder baseEvent, MethodElement method, bool withMetadata) {
+    ClassBuilder baseEvent,
+    MethodElement method,
+    bool withMetadata,
+  ) {
     final name = method.name;
     final suffix = baseEvent.name!;
-    final result = ClassBuilder()
-      ..name = createEventName(baseEvent, method)
-      ..extend = refer(suffix);
+    final result =
+        ClassBuilder()
+          ..name = createEventName(baseEvent, method)
+          ..extend = refer(suffix);
 
     final constructor = ConstructorBuilder()..constant = !withMetadata;
 
-    final baseFactory = ConstructorBuilder()
-      ..name = name
-      ..redirect = refer(result.name!)
-      ..factory = true;
+    final baseFactory =
+        ConstructorBuilder()
+          ..name = name
+          ..redirect = refer(result.name!)
+          ..factory = true;
 
-    for (var parameter in method.parameters) {
+    for (var parameter in method.formalParameters) {
       result.fields.add(
         Field(
-          (b) => b
-            ..name = parameter.name
-            ..type =
-                refer(parameter.type.getDisplayString(withNullability: true))
-            ..modifier = FieldModifier.final$,
+          (b) =>
+              b
+                ..name = parameter.name!
+                ..type = refer(parameter.type.getDisplayString())
+                ..modifier = FieldModifier.final$,
         ),
       );
       if (parameter.isNamed) {
         baseFactory.optionalParameters.add(
           Parameter(
-            (b) => b
-              ..name = parameter.name
-              ..named = parameter.isNamed
-              ..required = parameter.isRequired
-              ..type =
-                  refer(parameter.type.getDisplayString(withNullability: true)),
+            (b) =>
+                b
+                  ..name = parameter.name!
+                  ..named = parameter.isNamed
+                  ..required = parameter.isRequired
+                  ..type = refer(parameter.type.getDisplayString()),
           ),
         );
-        constructor.optionalParameters.add(Parameter(
-          (b) => b
-            ..name = parameter.name
-            ..named = parameter.isNamed
-            ..required = parameter.isRequired
-            ..defaultTo = parameter.hasDefaultValue
-                ? Code(parameter.defaultValueCode ?? '')
-                : null
-            ..toThis = true,
-        ));
+        constructor.optionalParameters.add(
+          Parameter(
+            (b) =>
+                b
+                  ..name = parameter.name!
+                  ..named = parameter.isNamed
+                  ..required = parameter.isRequired
+                  ..defaultTo =
+                      parameter.hasDefaultValue
+                          ? Code(parameter.defaultValueCode ?? '')
+                          : null
+                  ..toThis = true,
+          ),
+        );
       } else if (parameter.isOptional) {
         baseFactory.optionalParameters.add(
           Parameter(
-            (b) => b
-              ..name = parameter.name
-              ..type =
-                  refer(parameter.type.getDisplayString(withNullability: true)),
+            (b) =>
+                b
+                  ..name = parameter.name!
+                  ..type = refer(parameter.type.getDisplayString()),
           ),
         );
-        constructor.optionalParameters.add(Parameter(
-          (b) => b
-            ..name = parameter.name
-            ..defaultTo = parameter.hasDefaultValue
-                ? Code(parameter.defaultValueCode ?? '')
-                : null
-            ..toThis = true,
-        ));
+        constructor.optionalParameters.add(
+          Parameter(
+            (b) =>
+                b
+                  ..name = parameter.name!
+                  ..defaultTo =
+                      parameter.hasDefaultValue
+                          ? Code(parameter.defaultValueCode ?? '')
+                          : null
+                  ..toThis = true,
+          ),
+        );
       } else {
         baseFactory.requiredParameters.add(
           Parameter(
-            (b) => b
-              ..name = parameter.name
-              ..type =
-                  refer(parameter.type.getDisplayString(withNullability: true)),
+            (b) =>
+                b
+                  ..name = parameter.name!
+                  ..type = refer(parameter.type.getDisplayString()),
           ),
         );
-        constructor.requiredParameters.add(Parameter(
-          (b) => b
-            ..name = parameter.name
-            ..defaultTo = parameter.hasDefaultValue
-                ? Code(parameter.defaultValueCode ?? '')
-                : null
-            ..toThis = true,
-        ));
+        constructor.requiredParameters.add(
+          Parameter(
+            (b) =>
+                b
+                  ..name = parameter.name!
+                  ..defaultTo =
+                      parameter.hasDefaultValue
+                          ? Code(parameter.defaultValueCode ?? '')
+                          : null
+                  ..toThis = true,
+          ),
+        );
       }
     }
 
@@ -189,20 +206,21 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
     if (withMetadata) {
       final metadataArguments = StringBuffer('{');
 
-      for (var parameter in method.parameters) {
+      for (var parameter in method.formalParameters) {
         final metadataName = () {
-          final annotation =
-              eventArgumentAnnotationType.firstAnnotationOf(parameter);
+          final annotation = eventArgumentAnnotationType.firstAnnotationOf(
+            parameter,
+          );
           if (annotation != null) {
             return annotation.getField('metadata')?.toStringValue() ?? name;
           }
-          return parameter.name;
+          return parameter.name!;
         }();
         if (parameter.type.nullabilitySuffix == NullabilitySuffix.question) {
-          metadataArguments.write('if(${parameter.name} != null)');
+          metadataArguments.write('if(${parameter.name!} != null)');
         }
 
-        metadataArguments.write('\'$metadataName\' : ${parameter.name} ,');
+        metadataArguments.write('\'$metadataName\' : ${parameter.name!} ,');
       }
 
       metadataArguments.write('}');
@@ -217,14 +235,16 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
 
       result.fields.add(
         Field(
-          (b) => b
-            ..annotations.add(const CodeExpression(Code("override")))
-            ..name = '\$metadata'
-            ..modifier = FieldModifier.final$
-            ..type = refer('EventMetadata')
-            ..assignment =
-                Code('EventMetadata(\'$metadataName\', $metadataArguments)')
-            ..late = true,
+          (b) =>
+              b
+                ..annotations.add(const CodeExpression(Code("override")))
+                ..name = '\$metadata'
+                ..modifier = FieldModifier.final$
+                ..type = refer('EventMetadata')
+                ..assignment = Code(
+                  'EventMetadata(\'$metadataName\', $metadataArguments)',
+                )
+                ..late = true,
         ),
       );
     }
@@ -248,12 +268,13 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
 
     result.methods.add(
       Method(
-        (b) => b
-          ..annotations.add(const CodeExpression(Code("override")))
-          ..name = 'toString'
-          ..returns = refer('String')
-          ..lambda = true
-          ..body = Code(toStringBody.toString()),
+        (b) =>
+            b
+              ..annotations.add(const CodeExpression(Code("override")))
+              ..name = 'toString'
+              ..returns = refer('String')
+              ..lambda = true
+              ..body = Code(toStringBody.toString()),
       ),
     );
 
@@ -263,18 +284,18 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
   }
 
   Class generateStreamedImpl(ClassBuilder baseEvent, ClassElement element) {
-    final result = ClassBuilder()
-      ..name = 'Streamed${element.name}'
-      ..implements.add(refer(element.name));
+    final result =
+        ClassBuilder()
+          ..name = 'Streamed${element.name}'
+          ..implements.add(refer(element.name!));
 
     for (final method in element.methods.where((m) => m.isPublic)) {
-      final impl = MethodBuilder()
-        ..name = method.name
-        ..annotations.add(const CodeExpression(Code("override")))
-        ..lambda = true
-        ..returns = refer(
-          method.returnType.getDisplayString(withNullability: true),
-        );
+      final impl =
+          MethodBuilder()
+            ..name = method.name
+            ..annotations.add(const CodeExpression(Code("override")))
+            ..lambda = true
+            ..returns = refer(method.returnType.getDisplayString());
 
       final body = StringBuffer();
 
@@ -282,44 +303,46 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
       body.write(createEventName(baseEvent, method));
       body.write('(');
 
-      for (var parameter in method.parameters) {
-        final name = parameter.name;
+      for (var parameter in method.formalParameters) {
+        final name = parameter.name!;
         if (parameter.isNamed) {
           body.write('$name : $name,');
           impl.optionalParameters.add(
             Parameter(
-              (b) => b
-                ..name = name
-                ..named = parameter.isNamed
-                ..required = parameter.isRequired
-                ..defaultTo = parameter.hasDefaultValue
-                    ? Code(parameter.defaultValueCode ?? '')
-                    : null
-                ..type = refer(
-                    parameter.type.getDisplayString(withNullability: true)),
+              (b) =>
+                  b
+                    ..name = name
+                    ..named = parameter.isNamed
+                    ..required = parameter.isRequired
+                    ..defaultTo =
+                        parameter.hasDefaultValue
+                            ? Code(parameter.defaultValueCode ?? '')
+                            : null
+                    ..type = refer(parameter.type.getDisplayString()),
             ),
           );
         } else if (parameter.isOptional) {
           body.write('$name,');
           impl.optionalParameters.add(
             Parameter(
-              (b) => b
-                ..name = name
-                ..defaultTo = parameter.hasDefaultValue
-                    ? Code(parameter.defaultValueCode ?? '')
-                    : null
-                ..type = refer(
-                    parameter.type.getDisplayString(withNullability: true)),
+              (b) =>
+                  b
+                    ..name = name
+                    ..defaultTo =
+                        parameter.hasDefaultValue
+                            ? Code(parameter.defaultValueCode ?? '')
+                            : null
+                    ..type = refer(parameter.type.getDisplayString()),
             ),
           );
         } else {
           body.write('$name,');
           impl.requiredParameters.add(
             Parameter(
-              (b) => b
-                ..name = name
-                ..type = refer(
-                    parameter.type.getDisplayString(withNullability: true)),
+              (b) =>
+                  b
+                    ..name = name
+                    ..type = refer(parameter.type.getDisplayString()),
             ),
           );
         }
@@ -331,33 +354,37 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
 
     result.fields.add(
       Field(
-        (b) => b
-          ..name = '_stream'
-          ..type = refer('StreamController<${baseEvent.name}>')
-          ..modifier = FieldModifier.final$
-          ..assignment =
-              Code('StreamController<${baseEvent.name}>.broadcast()'),
+        (b) =>
+            b
+              ..name = '_stream'
+              ..type = refer('StreamController<${baseEvent.name}>')
+              ..modifier = FieldModifier.final$
+              ..assignment = Code(
+                'StreamController<${baseEvent.name}>.broadcast()',
+              ),
       ),
     );
 
     result.methods.add(
       Method(
-        (b) => b
-          ..name = 'stream'
-          ..returns = refer('Stream<${baseEvent.name}>')
-          ..type = MethodType.getter
-          ..lambda = true
-          ..body = Code('_stream.stream'),
+        (b) =>
+            b
+              ..name = 'stream'
+              ..returns = refer('Stream<${baseEvent.name}>')
+              ..type = MethodType.getter
+              ..lambda = true
+              ..body = Code('_stream.stream'),
       ),
     );
 
     result.methods.add(
       Method(
-        (b) => b
-          ..name = 'dispose'
-          ..returns = refer('void')
-          ..lambda = true
-          ..body = Code('_stream.close()'),
+        (b) =>
+            b
+              ..name = 'dispose'
+              ..returns = refer('void')
+              ..lambda = true
+              ..body = Code('_stream.close()'),
       ),
     );
 
@@ -365,10 +392,13 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
   }
 
   Extension generateInvokeExtension(
-      ClassBuilder baseEvent, ClassElement element) {
-    final result = ExtensionBuilder()
-      ..name = '${element.name}InvokeExtension'
-      ..on = refer(element.name);
+    ClassBuilder baseEvent,
+    ClassElement element,
+  ) {
+    final result =
+        ExtensionBuilder()
+          ..name = '${element.name}InvokeExtension'
+          ..on = refer(element.name!);
 
     final body = StringBuffer();
 
@@ -380,12 +410,12 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
       body.write(method.name);
       body.write('(');
 
-      for (var parameter in method.parameters) {
+      for (var parameter in method.formalParameters) {
         if (parameter.isNamed) {
-          final name = parameter.name;
+          final name = parameter.name!;
           body.write('$name : event.$name,');
         } else {
-          body.write('event.${parameter.name},');
+          body.write('event.${parameter.name!},');
         }
       }
       body.write(');');
@@ -395,17 +425,19 @@ class EventifiedGenerator extends gen.GeneratorForAnnotation<Eventified> {
 
     result.methods.add(
       Method(
-        (b) => b
-          ..name = 'invoke'
-          ..returns = refer('void')
-          ..body = Code(body.toString())
-          ..requiredParameters.add(
-            Parameter(
-              (b) => b
-                ..name = 'event'
-                ..type = refer(baseEvent.name!),
-            ),
-          ),
+        (b) =>
+            b
+              ..name = 'invoke'
+              ..returns = refer('void')
+              ..body = Code(body.toString())
+              ..requiredParameters.add(
+                Parameter(
+                  (b) =>
+                      b
+                        ..name = 'event'
+                        ..type = refer(baseEvent.name!),
+                ),
+              ),
       ),
     );
 
