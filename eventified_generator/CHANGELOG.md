@@ -1,3 +1,7 @@
+## 0.5.0
+
+- Added support for analyzer 14, source_gen 4 and build 4 and 5 (needed for Dart 3.13).
+
 ## 0.4.0
 
 - Downgraded minimal dependency constraints for analyzer.
